@@ -11,8 +11,8 @@ const userSchema = new mongoose.Schema({
   resetOtpExpireAt: { type: Number, default: 0 },
   userRole: {
     type: String,
-    enum: ["consumer", "vendor"],
-    default: "consumer",
+    enum: ["supplier", "vendor"],
+    default: "supplier",
   },
 });
 
