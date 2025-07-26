@@ -14,6 +14,7 @@ const Login = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userRole, setUserRole] = useState("vendor");
 
   const onSubmitandler = async (e) => {
     try {
@@ -26,6 +27,7 @@ const Login = () => {
             name,
             email,
             password,
+            userRole,
           },
           { withCredentials: true }
         );
@@ -43,6 +45,7 @@ const Login = () => {
           {
             email,
             password,
+            userRole,
           },
           { withCredentials: true }
         );
@@ -121,6 +124,20 @@ const Login = () => {
               }}
               value={password}
             />
+          </div>
+          <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
+            <img src={assets.lock_icon} alt="" />
+            <select
+              className="bg-transparent outline-none text-indigo-300 w-full"
+              required
+              onChange={(e) => {
+                setUserRole(e.target.value);
+              }}
+              value={userRole}
+            >
+              <option value="vendor">Vendor</option>
+              <option value="supplier">Supplier</option>
+            </select>
           </div>
           <p
             className="mb-4 text-indigo-500 cursor-pointer"
