@@ -9,6 +9,7 @@ export const AppContextProvider = (props) => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(false);
+  const [userRole, setUserRole] = useState("");
 
   const getUserData = useCallback(async () => {
     try {
@@ -21,15 +22,30 @@ export const AppContextProvider = (props) => {
     }
   }, [backendUrl]);
 
+  const getUserRole = useCallback(async () => {
+    try {
+      const { data } = await axios.get(backendUrl + "/api/user/role", {
+        withCredentials: true,
+      });
+      data.success ? setUserRole(data.userRole) : toast.error(data.message);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }, [backendUrl]);
+
+  useEffect(() => {
+    getUserRole();
+  }, [getUserRole]);
+
   const getAuthState = useCallback(async () => {
     try {
       const { data } = await axios.get(backendUrl + "/api/auth/is-auth", {
         withCredentials: true,
       });
-
       if (data && data.success) {
         setIsLoggedIn(true);
         getUserData();
+        getUserRole();
       } else {
         setIsLoggedIn(false);
       }
@@ -40,7 +56,7 @@ export const AppContextProvider = (props) => {
         toast.error(error.response?.data?.message || error.message);
       }
     }
-  }, [backendUrl, getUserData]);
+  }, [backendUrl, getUserData, getUserRole]);
 
   useEffect(() => {
     getAuthState();
@@ -53,6 +69,8 @@ export const AppContextProvider = (props) => {
     userData,
     setUserData,
     getUserData,
+    userRole,
+    setUserRole,
   };
 
   return (
