@@ -25,14 +25,15 @@ const StockManagement = () => {
   const fetchStocks = async () => {
     setIsLoading(true);
     try {
-      const response = await stockAPI.getAllStocks();
+      // Fetch user's own stocks instead of all stocks
+      const response = await stockAPI.getUserStocks();
       if (response.success) {
         setStocks(response.stocks);
       } else {
-        toast.error("Failed to fetch stocks");
+        toast.error("Failed to fetch your stocks");
       }
     } catch (error) {
-      toast.error("Error fetching stocks: " + error.message);
+      toast.error("Error fetching your stocks: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +74,13 @@ const StockManagement = () => {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error("Error saving stock: " + error.message);
+      if (error.response?.status === 403) {
+        toast.error("Access denied. You can only manage your own stocks.");
+      } else if (error.response?.status === 401) {
+        toast.error("Please login to manage stocks.");
+      } else {
+        toast.error("Error saving stock: " + error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +97,13 @@ const StockManagement = () => {
           toast.error("Failed to delete stock");
         }
       } catch (error) {
-        toast.error("Error deleting stock: " + error.message);
+        if (error.response?.status === 403) {
+          toast.error("Access denied. You can only delete your own stocks.");
+        } else if (error.response?.status === 401) {
+          toast.error("Please login to manage stocks.");
+        } else {
+          toast.error("Error deleting stock: " + error.message);
+        }
       }
     }
   };
@@ -132,7 +145,9 @@ const StockManagement = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Stock Management</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          My Stock Management
+        </h2>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -316,7 +331,7 @@ const StockManagement = () => {
                   colSpan="6"
                   className="border border-gray-300 px-4 py-8 text-center"
                 >
-                  No stocks found
+                  No stocks found. Add your first stock to get started!
                 </td>
               </tr>
             ) : (

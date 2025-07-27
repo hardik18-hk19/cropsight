@@ -6,6 +6,7 @@ import {
   getStocksBySupplier,
   getStocksByMaterial,
   getAllStocks,
+  getUserStocks,
   getStockById,
 } from "../controllers/stockController.js";
 import upload from "../middleware/upload.js";
@@ -13,10 +14,10 @@ import userAuth from "../middleware/userAuth.js";
 
 const router = express.Router();
 
-// Add new stock with images
+// Add new stock with images (requires authentication)
 router.post("/add", userAuth, upload.array("images", 5), addStock);
 
-// Update stock with images
+// Update stock with images (requires authentication)
 router.put(
   "/update/:stockId",
   userAuth,
@@ -24,19 +25,22 @@ router.put(
   updateStock
 );
 
-// Delete stock
+// Delete stock (requires authentication)
 router.delete("/delete/:stockId", userAuth, deleteStock);
 
-// Get stocks by supplier
+// Get user's own stocks (requires authentication)
+router.get("/my-stocks", userAuth, getUserStocks);
+
+// Get stocks by supplier (public access)
 router.get("/supplier/:supplierId", getStocksBySupplier);
 
-// Get stocks by material
+// Get stocks by material (public access)
 router.get("/material/:materialId", getStocksByMaterial);
 
-// Get all stocks
+// Get all stocks (public access for browsing)
 router.get("/all", getAllStocks);
 
-// Get stock by ID
+// Get stock by ID (public access)
 router.get("/:stockId", getStockById);
 
 export default router;

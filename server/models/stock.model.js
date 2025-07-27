@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const stockSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
     supplierId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "supplier",

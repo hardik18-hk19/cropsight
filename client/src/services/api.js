@@ -223,6 +223,11 @@ export const stockAPI = {
     return response.data;
   },
 
+  getUserStocks: async () => {
+    const response = await axios.get(constructURL("/api/stock/my-stocks"));
+    return response.data;
+  },
+
   getStockById: async (stockId) => {
     const response = await axios.get(constructURL(`/api/stock/${stockId}`));
     return response.data;
