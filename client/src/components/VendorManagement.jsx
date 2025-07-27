@@ -22,13 +22,19 @@ const VendorManagement = () => {
     setIsLoading(true);
     try {
       const response = await vendorAPI.getAllVendors();
+      console.log("🔍 Full API Response:", response);
       if (response.success) {
-        setVendors(response.vendors);
+        console.log("📦 Vendors array:", response.vendors);
+        console.log("📏 Vendors length:", response.vendors?.length);
+        setVendors(response.vendors || []);
       } else {
         toast.error("Failed to fetch vendors");
+        setVendors([]); // Set empty array on failure
       }
     } catch (error) {
+      console.error("Error fetching vendors:", error);
       toast.error("Error fetching vendors: " + error.message);
+      setVendors([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +47,9 @@ const VendorManagement = () => {
     try {
       let response;
       if (editingVendor) {
-        response = await vendorAPI.updateVendor(editingVendor._id, formData);
+        // Update is not implemented in backend yet
+        toast.error("Update vendor functionality is not implemented yet");
+        return;
       } else {
         response = await vendorAPI.createVendor(formData);
       }
@@ -54,6 +62,7 @@ const VendorManagement = () => {
         toast.error(response.message);
       }
     } catch (error) {
+      console.error("Error saving vendor:", error);
       toast.error("Error saving vendor: " + error.message);
     } finally {
       setIsLoading(false);
@@ -61,31 +70,41 @@ const VendorManagement = () => {
   };
 
   const handleDelete = async (vendorId) => {
-    if (window.confirm("Are you sure you want to delete this vendor?")) {
-      try {
-        const response = await vendorAPI.deleteVendor(vendorId);
-        if (response.success) {
-          toast.success("Vendor deleted successfully");
-          fetchVendors();
-        } else {
-          toast.error("Failed to delete vendor");
-        }
-      } catch (error) {
-        toast.error("Error deleting vendor: " + error.message);
-      }
-    }
+    // Delete is not implemented in backend yet
+    console.log("Delete requested for vendor:", vendorId);
+    toast.error("Delete vendor functionality is not implemented yet");
+    return;
+
+    // if (window.confirm("Are you sure you want to delete this vendor?")) {
+    //   try {
+    //     const response = await vendorAPI.deleteVendor(vendorId);
+    //     if (response.success) {
+    //       toast.success("Vendor deleted successfully");
+    //       fetchVendors();
+    //     } else {
+    //       toast.error("Failed to delete vendor");
+    //     }
+    //   } catch (error) {
+    //     toast.error("Error deleting vendor: " + error.message);
+    //   }
+    // }
   };
 
   const handleEdit = (vendor) => {
-    setEditingVendor(vendor);
-    setFormData({
-      userId: vendor.userId?._id || vendor.userId,
-      preferredMaterials:
-        vendor.preferredMaterials?.map(
-          (material) => material._id || material
-        ) || [],
-    });
-    setShowForm(true);
+    // Edit is not implemented in backend yet
+    console.log("Edit requested for vendor:", vendor);
+    toast.error("Edit vendor functionality is not implemented yet");
+    return;
+
+    // setEditingVendor(vendor);
+    // setFormData({
+    //   userId: vendor.userId?._id || vendor.userId,
+    //   preferredMaterials:
+    //     vendor.preferredMaterials?.map(
+    //       (material) => material._id || material
+    //     ) || [],
+    // });
+    // setShowForm(true);
   };
 
   const viewVendorDetails = async (vendorId) => {
@@ -239,7 +258,7 @@ const VendorManagement = () => {
                   Loading...
                 </td>
               </tr>
-            ) : vendors.length === 0 ? (
+            ) : !vendors || vendors.length === 0 ? (
               <tr>
                 <td
                   colSpan="5"
@@ -273,13 +292,17 @@ const VendorManagement = () => {
                       </button>
                       <button
                         onClick={() => handleEdit(vendor)}
-                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition-colors"
+                        className="bg-gray-400 text-white px-3 py-1 rounded text-sm cursor-not-allowed"
+                        disabled
+                        title="Edit functionality not implemented yet"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(vendor._id)}
-                        className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                        className="bg-gray-400 text-white px-3 py-1 rounded text-sm cursor-not-allowed"
+                        disabled
+                        title="Delete functionality not implemented yet"
                       >
                         Delete
                       </button>

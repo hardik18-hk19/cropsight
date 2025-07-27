@@ -5,6 +5,73 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 // Configure axios defaults
 axios.defaults.withCredentials = true;
 
+// Authentication API
+export const authAPI = {
+  register: async (userData) => {
+    const response = await axios.post(
+      `${backendUrl}/api/auth/register`,
+      userData
+    );
+    return response.data;
+  },
+
+  login: async (credentials) => {
+    const response = await axios.post(
+      `${backendUrl}/api/auth/login`,
+      credentials
+    );
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await axios.post(`${backendUrl}/api/auth/logout`);
+    return response.data;
+  },
+
+  sendVerifyOtp: async () => {
+    const response = await axios.post(`${backendUrl}/api/auth/send-verify-otp`);
+    return response.data;
+  },
+
+  verifyAccount: async (otp) => {
+    const response = await axios.post(`${backendUrl}/api/auth/verify-account`, {
+      otp,
+    });
+    return response.data;
+  },
+
+  sendResetOtp: async () => {
+    const response = await axios.post(`${backendUrl}/api/auth/send-reset-otp`);
+    return response.data;
+  },
+
+  resetPassword: async (otpData) => {
+    const response = await axios.post(
+      `${backendUrl}/api/auth/password-reset`,
+      otpData
+    );
+    return response.data;
+  },
+
+  isAuthenticated: async () => {
+    const response = await axios.get(`${backendUrl}/api/auth/is-auth`);
+    return response.data;
+  },
+};
+
+// User API
+export const userAPI = {
+  getUserData: async () => {
+    const response = await axios.get(`${backendUrl}/api/user/data`);
+    return response.data;
+  },
+
+  getUserRole: async () => {
+    const response = await axios.get(`${backendUrl}/api/user/role`);
+    return response.data;
+  },
+};
+
 // Supplier API
 export const supplierAPI = {
   getAllSuppliers: async () => {
@@ -194,53 +261,65 @@ export const imageAPI = {
   },
 };
 
-// Vendor API (if needed)
+// Vendor API
 export const vendorAPI = {
   getAllVendors: async () => {
-    const response = await axios.get(`${backendUrl}/api/vendor/all`);
+    const response = await axios.get(`${backendUrl}/api/vendor/getall-vendors`);
     return response.data;
   },
 
   getVendorById: async (id) => {
-    const response = await axios.get(`${backendUrl}/api/vendor/${id}`);
+    const response = await axios.get(
+      `${backendUrl}/api/vendor/get-vendor/${id}`
+    );
     return response.data;
   },
 
   createVendor: async (vendorData) => {
     const response = await axios.post(
-      `${backendUrl}/api/vendor/create`,
+      `${backendUrl}/api/vendor/create-vendor`,
       vendorData
     );
     return response.data;
   },
 
-  updateVendor: async (id, vendorData) => {
-    const response = await axios.put(
-      `${backendUrl}/api/vendor/update/${id}`,
-      vendorData
-    );
-    return response.data;
-  },
-
-  deleteVendor: async (id) => {
-    const response = await axios.delete(
-      `${backendUrl}/api/vendor/delete/${id}`
-    );
-    return response.data;
-  },
-
-  addPreferredMaterial: async (id, materialId) => {
+  predictPrice: async (priceData) => {
     const response = await axios.post(
-      `${backendUrl}/api/vendor/${id}/preferred-material`,
-      { materialId }
+      `${backendUrl}/api/vendor/predict-price`,
+      priceData
     );
     return response.data;
   },
 
-  removePreferredMaterial: async (id, materialId) => {
-    const response = await axios.delete(
-      `${backendUrl}/api/vendor/${id}/preferred-material/${materialId}`
-    );
-    return response.data;
-  },
+  // Note: The following endpoints are defined in frontend but not implemented in backend
+  // You may need to implement these in the backend if required:
+  // updateVendor: async (id, vendorData) => {
+  //   const response = await axios.put(
+  //     `${backendUrl}/api/vendor/update/${id}`,
+  //     vendorData
+  //   );
+  //   return response.data;
+  // },
+
+  // deleteVendor: async (id) => {
+  //   const response = await axios.delete(
+  //     `${backendUrl}/api/vendor/delete/${id}`
+  //   );
+  //   return response.data;
+  // },
+
+  // addPreferredMaterial: async (id, materialId) => {
+  //   const response = await axios.post(
+  //     `${backendUrl}/api/vendor/${id}/preferred-material`,
+  //     { materialId }
+  //   );
+  //   return response.data;
+  // },
+
+  // removePreferredMaterial: async (id, materialId) => {
+  //   const response = await axios.delete(
+  //     `${backendUrl}/api/vendor/${id}/preferred-material/${materialId}`
+  //   );
+  //   return response.data;
+  // },
 };
