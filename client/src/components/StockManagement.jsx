@@ -41,12 +41,13 @@ const StockManagement = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const response = await supplierAPI.getAllSuppliers();
+      // Fetch only the user's own supplier data instead of all suppliers
+      const response = await supplierAPI.getMySupplierData();
       if (response.success) {
-        setSuppliers(response.suppliers);
+        setSuppliers([response.supplier]); // Set as array with single supplier
       }
     } catch (error) {
-      toast.error("Error fetching suppliers: " + error.message);
+      toast.error("Error fetching your supplier data: " + error.message);
     }
   };
 
@@ -75,9 +76,14 @@ const StockManagement = () => {
       }
     } catch (error) {
       if (error.response?.status === 403) {
-        toast.error("Access denied. You can only manage your own stocks.");
+        toast.error(
+          error.response?.data?.message ||
+            "Access denied. You can only manage your own stocks."
+        );
       } else if (error.response?.status === 401) {
         toast.error("Please login to manage stocks.");
+      } else if (error.response?.status === 404) {
+        toast.error(error.response?.data?.message || "Resource not found.");
       } else {
         toast.error("Error saving stock: " + error.message);
       }
@@ -165,10 +171,41 @@ const StockManagement = () => {
             {editingStock ? "Edit Stock" : "Add New Stock"}
           </h3>
 
+          {suppliers.length === 0 && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Supplier Profile Required
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>
+                      You need to create a supplier profile before you can add
+                      stocks. Please set up your supplier profile first.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Supplier
+                Your Supplier Profile
               </label>
               <select
                 value={formData.supplierId}
@@ -178,13 +215,18 @@ const StockManagement = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
-                <option value="">Select Supplier</option>
+                <option value="">Select Your Supplier Profile</option>
                 {suppliers.map((supplier) => (
                   <option key={supplier._id} value={supplier._id}>
-                    {supplier.id?.name || "Supplier"}
+                    {supplier.userId?.name || "Your Supplier Profile"}
                   </option>
                 ))}
               </select>
+              {suppliers.length === 0 && (
+                <p className="text-sm text-red-600 mt-1">
+                  You need to create a supplier profile first to add stocks.
+                </p>
+              )}
             </div>
 
             <div>
@@ -271,8 +313,8 @@ const StockManagement = () => {
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={isLoading}
-              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+              disabled={isLoading || suppliers.length === 0}
+              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading
                 ? "Saving..."

@@ -1,4 +1,5 @@
 import Stock from "../models/stock.model.js";
+import supplierModel from "../models/supplier.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
 // Add new stock
@@ -7,6 +8,23 @@ const addStock = async (req, res) => {
     const { supplierId, materialId, quantity, pricePerUnit, description } =
       req.body;
     const userId = req.userId; // Get user ID from auth middleware
+
+    // Verify that the supplier belongs to the authenticated user
+    const supplier = await supplierModel.findById(supplierId);
+    if (!supplier) {
+      return res.status(404).json({
+        success: false,
+        message: "Supplier not found",
+      });
+    }
+
+    if (supplier.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. You can only add stocks to your own supplier profile.",
+      });
+    }
 
     // Handle image uploads
     let imageUrls = [];
@@ -62,6 +80,28 @@ const updateStock = async (req, res) => {
         success: false,
         message: "Access denied. You can only update your own stocks.",
       });
+    }
+
+    // If supplierId is being updated, verify it belongs to the user
+    if (
+      updateData.supplierId &&
+      updateData.supplierId !== existingStock.supplierId.toString()
+    ) {
+      const supplier = await supplierModel.findById(updateData.supplierId);
+      if (!supplier) {
+        return res.status(404).json({
+          success: false,
+          message: "Supplier not found",
+        });
+      }
+
+      if (supplier.userId.toString() !== userId) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Access denied. You can only assign stocks to your own supplier profile.",
+        });
+      }
     }
 
     // Handle new image uploads
