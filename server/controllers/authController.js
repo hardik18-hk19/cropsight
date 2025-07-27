@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/user.model.js";
+import supplierModel from "../models/supplier.model.js";
+import vendorModel from "../models/vendor.model.js";
 import transporter from "../config/nodemailer.js";
 import {
   EMAIL_VERIFY_TEMPLATE,
@@ -31,6 +33,21 @@ export const register = async (req, res) => {
     });
 
     await user.save();
+
+    // Create corresponding supplier or vendor document
+    if (userRole === "supplier") {
+      const supplier = new supplierModel({
+        userId: user._id,
+        rawMaterials: [], // Empty array initially
+      });
+      await supplier.save();
+    } else if (userRole === "vendor") {
+      const vendor = new vendorModel({
+        userId: user._id,
+        preferredMaterials: [], // Empty array initially
+      });
+      await vendor.save();
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
