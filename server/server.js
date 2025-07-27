@@ -16,7 +16,10 @@ const app = express();
 const port = process.env.PORT || 4000;
 connectDatabase();
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://cropsight-coral.vercel.app/",
+];
 
 app.use(express.json());
 app.use(cookieParser());
