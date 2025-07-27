@@ -4,8 +4,10 @@ import { toast } from "react-toastify";
 
 const RawMaterialManagement = () => {
   const [materials, setMaterials] = useState([]);
+  const [allMaterials, setAllMaterials] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showPreferenceForm, setShowPreferenceForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -28,6 +30,7 @@ const RawMaterialManagement = () => {
 
   useEffect(() => {
     fetchMaterials();
+    fetchAllMaterials();
   }, []);
 
   const fetchMaterials = async () => {
@@ -54,11 +57,64 @@ const RawMaterialManagement = () => {
     }
   };
 
+  const fetchAllMaterials = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/supplier/all-materials`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setAllMaterials(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching all materials:", error);
+    }
+  };
+
+  const handleAddPreference = async (materialId) => {
+    try {
+      setIsLoading(true);
+      const response = await supplierAPI.addMaterialPreference(materialId);
+      if (response.success) {
+        toast.success("Material added to your preferences!");
+        fetchMaterials(); // Refresh the materials list
+        fetchAllMaterials(); // Refresh all materials to update availability
+      } else {
+        toast.error(response.message || "Failed to add material preference");
+      }
+    } catch (error) {
+      toast.error("Error adding material preference: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // Check for duplicate material names (case-insensitive)
+      const existingMaterial = materials.find(
+        (material) =>
+          material.name.toLowerCase() === formData.name.toLowerCase() &&
+          (!editingMaterial || material._id !== editingMaterial._id)
+      );
+
+      if (existingMaterial) {
+        toast.error(
+          `Material "${formData.name}" already exists in your inventory`
+        );
+        setIsLoading(false);
+        return;
+      }
+
       let response;
       if (editingMaterial) {
         response = await supplierAPI.updateRawMaterial(
@@ -119,18 +175,33 @@ const RawMaterialManagement = () => {
     setShowForm(false);
   };
 
+  const togglePreferenceForm = () => {
+    setShowPreferenceForm(!showPreferenceForm);
+    if (!showPreferenceForm) {
+      fetchAllMaterials(); // Refresh all materials when opening preference form
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
           Raw Material Management
         </h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          {showForm ? "Cancel" : "Add New Material"}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            {showForm ? "Cancel" : "Add New Material"}
+          </button>
+          <button
+            onClick={togglePreferenceForm}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+          >
+            {showPreferenceForm ? "Cancel" : "Browse Materials"}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -218,6 +289,64 @@ const RawMaterialManagement = () => {
             </button>
           </div>
         </form>
+      )}
+
+      {showPreferenceForm && (
+        <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4">
+            Browse All Available Materials
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Add existing materials to your preferences instead of creating
+            duplicates.
+          </p>
+
+          {isLoading ? (
+            <div className="text-center py-4">Loading materials...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allMaterials
+                .filter(
+                  (material) =>
+                    !materials.some(
+                      (myMaterial) => myMaterial._id === material._id
+                    )
+                )
+                .map((material) => (
+                  <div
+                    key={material._id}
+                    className="border border-gray-200 rounded-lg p-4 bg-white"
+                  >
+                    <h4 className="font-semibold text-lg text-gray-800">
+                      {material.name}
+                    </h4>
+                    <p className="text-gray-600">Unit: {material.unit}</p>
+                    <p className="text-gray-600">
+                      Category: {material.category}
+                    </p>
+                    <button
+                      onClick={() => handleAddPreference(material._id)}
+                      disabled={isLoading}
+                      className="mt-3 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 w-full"
+                    >
+                      Add to My Materials
+                    </button>
+                  </div>
+                ))}
+              {allMaterials.filter(
+                (material) =>
+                  !materials.some(
+                    (myMaterial) => myMaterial._id === material._id
+                  )
+              ).length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  No new materials available to add. You have access to all
+                  existing materials.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="overflow-x-auto">

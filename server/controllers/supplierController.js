@@ -70,6 +70,9 @@ export const addRawMaterial = async (req, res) => {
   try {
     const { name, unit, category } = req.body;
 
+    // Get the logged-in user's ID from the middleware
+    const userId = req.userId;
+
     // Validate required fields
     if (!name || !unit || !category) {
       return res.status(400).json({
@@ -78,20 +81,33 @@ export const addRawMaterial = async (req, res) => {
       });
     }
 
-    // Check if raw material already exists
+    // Check if raw material already exists globally (case-insensitive)
     let rawMaterial = await rawMaterialModel.findOne({
-      name: name.toLowerCase(),
-      category,
+      name: { $regex: new RegExp(`^${name.trim()}$`, "i") },
     });
 
     // If raw material doesn't exist, create it
     if (!rawMaterial) {
       rawMaterial = new rawMaterialModel({
-        name,
+        name: name.trim(),
         unit,
         category,
       });
       await rawMaterial.save();
+    } else {
+      // If material exists, check if supplier already has it
+      const supplier = await supplierModel.findOne({ userId });
+      if (supplier) {
+        const hasAlready = supplier.rawMaterials.find(
+          (rm) => rm.materialId.toString() === rawMaterial._id.toString()
+        );
+        if (hasAlready) {
+          return res.status(400).json({
+            success: false,
+            message: `You have already added "${rawMaterial.name}" to your materials.`,
+          });
+        }
+      }
     }
 
     // Find the supplier by userId (logged-in user)
@@ -202,6 +218,97 @@ export const deleteRawMaterial = async (req, res) => {
       success: false,
       message: "Error deleting raw material",
       error: error.message,
+    });
+  }
+};
+
+// Add existing raw material to supplier's preferences
+export const addMaterialPreference = async (req, res) => {
+  try {
+    const { materialId } = req.body;
+    const userId = req.userId;
+
+    // Validate required fields
+    if (!materialId) {
+      return res.status(400).json({
+        success: false,
+        message: "Material ID is required",
+      });
+    }
+
+    // Check if raw material exists
+    const rawMaterial = await rawMaterialModel.findById(materialId);
+    if (!rawMaterial) {
+      return res.status(404).json({
+        success: false,
+        message: "Raw material not found",
+      });
+    }
+
+    // Find the supplier by userId (logged-in user)
+    let supplier = await supplierModel.findOne({ userId });
+
+    // If supplier doesn't exist, create one
+    if (!supplier) {
+      supplier = new supplierModel({
+        userId,
+        rawMaterials: [],
+      });
+    }
+
+    // Check if this material is already in supplier's list
+    const existingMaterial = supplier.rawMaterials.find(
+      (rm) => rm.materialId.toString() === materialId
+    );
+
+    if (existingMaterial) {
+      return res.status(400).json({
+        success: false,
+        message: "This raw material is already in your preferences",
+      });
+    }
+
+    // Add material to supplier's raw materials array
+    supplier.rawMaterials.push({
+      materialId: rawMaterial._id,
+    });
+
+    await supplier.save();
+
+    // Populate the response
+    await supplier.populate("rawMaterials.materialId");
+
+    res.status(201).json({
+      success: true,
+      message: "Raw material added to your preferences successfully",
+      rawMaterial: rawMaterial,
+      supplier: supplier,
+    });
+  } catch (error) {
+    console.error("Error adding material preference:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error adding material preference",
+      error: error.message,
+    });
+  }
+};
+
+// Get all available raw materials (global catalog)
+export const getAllMaterials = async (req, res) => {
+  try {
+    const allMaterials = await rawMaterialModel.find({}).sort({ name: 1 });
+
+    return res.status(200).json({
+      success: true,
+      data: allMaterials,
+      message: "All materials fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching all materials:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching materials",
     });
   }
 };

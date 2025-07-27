@@ -170,6 +170,14 @@ export const supplierAPI = {
     );
     return response.data;
   },
+
+  addMaterialPreference: async (materialId) => {
+    const response = await axios.post(
+      constructURL("/api/supplier/add-preference"),
+      { materialId }
+    );
+    return response.data;
+  },
 };
 
 // Stock API
