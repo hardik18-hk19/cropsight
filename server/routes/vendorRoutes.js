@@ -6,6 +6,8 @@ import {
   getSingleVendorController,
   UpdateVendorController,
   DeleteVendorController,
+  addPreferredMaterialController,
+  deletePreferredMaterialIdController,
 } from "../controllers/vendorController.js";
 
 const router = express.Router();
@@ -28,5 +30,14 @@ router.put("/update-vendor/:id", UpdateVendorController);
 
 //delete vendor
 router.delete("/delete-vendor/:id", DeleteVendorController);
+
+//preferred-material
+router.post("/preferred-material/:id", addPreferredMaterialController);
+
+//removepreferredMaterial
+router.delete(
+  "/preferred-material/materialId",
+  deletePreferredMaterialIdController
+);
 
 export default router;

@@ -191,3 +191,74 @@ export const DeleteVendorController = async (req, res) => {
     });
   }
 };
+
+//addpreferred material
+export const addPreferredMaterialController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { materialId } = req.body;
+
+    if (!materialId) {
+      return res.status(500).send({
+        success: false,
+        message: "materialId is required",
+      });
+    }
+    const vendor = await vendorModel.findById(id);
+    if (!vendor) {
+      return res.status(404).send({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    if (!vendor.preferredMaterials.includes(materialId)) {
+      vendor.preferredMaterials.push(materialId);
+      await vendor.save();
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Preferred material added",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(404).send({
+      success: false,
+      message: "something went wrong",
+    });
+  }
+};
+
+//delete
+export const deletePreferredMaterialIdController = async (req, res) => {
+  try {
+    const { id, materialId } = req.params;
+
+    const vendor = await vendorModel.findById(id);
+    if (!vendor) {
+      return res.status(404).send({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    vendor.preferredMaterials = vendor.preferredMaterials.filter(
+      (mat) => mat.toString() !== materialId
+    );
+    await vendor.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Preferred material removed",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
