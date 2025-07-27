@@ -49,6 +49,43 @@ export const PredictPriceController = async (req, res) => {
   }
 };
 
+//create vendor
+export const createVendorController = async (req, res) => {
+  try {
+    const { userId, preferredMaterials } = req.body;
+    if (!userId) {
+      return res.status(500).send({
+        success: false,
+        message: "userId is required",
+      });
+    }
+
+    const existingVendor = await vendorModel.findOne({ userId });
+    if (existingVendor) {
+      return res.status(500).send({
+        success: false,
+        message: "vendor already exists for this user",
+      });
+    }
+    const vendor = new vendorModel({
+      userId,
+      preferredMaterials: preferredMaterials || [],
+    });
+    await vendor.save();
+    return res.status(201).send({
+      success: true,
+      message: "vendor created successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(404).send({
+      success: false,
+      message: "something went wrong in creating vendor",
+    });
+  }
+};
+
 //getAllVendorsController
 
 export const getAllVendorsController = async (req, res) => {
@@ -64,6 +101,34 @@ export const getAllVendorsController = async (req, res) => {
     return res.status(404).send({
       success: false,
       message: "Cannot get all vendors",
+    });
+  }
+};
+
+//getsingleVendors
+
+export const getSingleVendorController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vendor = await vendorModel
+      .findById(id)
+      .populate("preferredMaterials");
+    if (!vendor) {
+      return res.status(500).send({
+        success: false,
+        message: "vendor not found",
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      message: "vendor fetched Successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(404).send({
+      success: false,
+      message: "Something went wrong",
     });
   }
 };
