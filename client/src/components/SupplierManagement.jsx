@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supplierAPI } from "../services/api";
+import { supplierAPI, stockAPI } from "../services/api";
 import { toast } from "react-toastify";
 import Breadcrumb from "./Breadcrumb";
 
@@ -7,6 +7,7 @@ const SupplierManagement = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [supplierStocks, setSupplierStocks] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
@@ -31,9 +32,19 @@ const SupplierManagement = () => {
 
   const viewSupplierDetails = async (supplierId) => {
     try {
-      const response = await supplierAPI.getSupplierById(supplierId);
-      if (response.success) {
-        setSelectedSupplier(response.supplier);
+      // Fetch supplier details
+      const supplierResponse = await supplierAPI.getSupplierById(supplierId);
+      if (supplierResponse.success) {
+        setSelectedSupplier(supplierResponse.supplier);
+
+        // Fetch stocks for this supplier
+        const stocksResponse = await stockAPI.getStocksBySupplier(supplierId);
+        if (stocksResponse.success) {
+          setSupplierStocks(stocksResponse.stocks);
+        } else {
+          setSupplierStocks([]);
+        }
+
         setShowDetails(true);
       } else {
         toast.error("Failed to fetch supplier details");
@@ -45,6 +56,7 @@ const SupplierManagement = () => {
 
   const closeDetails = () => {
     setSelectedSupplier(null);
+    setSupplierStocks([]);
     setShowDetails(false);
   };
 
@@ -106,10 +118,10 @@ const SupplierManagement = () => {
               suppliers.map((supplier) => (
                 <tr key={supplier._id} className="hover:bg-gray-50">
                   <td className="border border-gray-300 px-4 py-2 font-medium">
-                    {supplier.id?.name || "Unknown Supplier"}
+                    {supplier.userId?.name || "Unknown Supplier"}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {supplier.id?.email || "N/A"}
+                    {supplier.userId?.email || "N/A"}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {supplier.rawMaterials?.length || 0}
@@ -157,7 +169,7 @@ const SupplierManagement = () => {
                       Name:
                     </label>
                     <p className="text-gray-800">
-                      {selectedSupplier.id?.name || "N/A"}
+                      {selectedSupplier.userId?.name || "N/A"}
                     </p>
                   </div>
                   <div>
@@ -165,7 +177,7 @@ const SupplierManagement = () => {
                       Email:
                     </label>
                     <p className="text-gray-800">
-                      {selectedSupplier.id?.email || "N/A"}
+                      {selectedSupplier.userId?.email || "N/A"}
                     </p>
                   </div>
                   <div>
@@ -188,7 +200,7 @@ const SupplierManagement = () => {
               </div>
 
               {/* Raw Materials */}
-              <div>
+              <div className="mb-6">
                 <h4 className="text-lg font-semibold mb-3">Raw Materials</h4>
                 {selectedSupplier.rawMaterials &&
                 selectedSupplier.rawMaterials.length > 0 ? (
@@ -257,6 +269,126 @@ const SupplierManagement = () => {
                 ) : (
                   <p className="text-gray-500 text-center py-4">
                     No raw materials found for this supplier
+                  </p>
+                )}
+              </div>
+
+              {/* Stock Images and Details */}
+              <div>
+                <h4 className="text-lg font-semibold mb-3">
+                  Stock Portfolio & Images
+                </h4>
+                {supplierStocks && supplierStocks.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {supplierStocks.map((stock) => (
+                      <div
+                        key={stock._id}
+                        className="bg-gray-50 rounded-lg p-4 shadow-sm"
+                      >
+                        {/* Stock Images */}
+                        {stock.images && stock.images.length > 0 && (
+                          <div className="mb-3">
+                            <div className="grid grid-cols-2 gap-2">
+                              {stock.images
+                                .slice(0, 4)
+                                .map((image, imgIndex) => (
+                                  <img
+                                    key={imgIndex}
+                                    src={image.url || image}
+                                    alt={`Stock ${
+                                      stock.materialId?.name || "item"
+                                    }`}
+                                    className="w-full h-20 object-cover rounded"
+                                    onError={(e) => {
+                                      e.target.style.display = "none";
+                                    }}
+                                  />
+                                ))}
+                            </div>
+                            {stock.images.length > 4 && (
+                              <p className="text-xs text-gray-500 mt-1 text-center">
+                                +{stock.images.length - 4} more images
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Stock Details */}
+                        <div className="space-y-2">
+                          <h5 className="font-semibold text-gray-800">
+                            {stock.materialId?.name || stock.materialId}
+                          </h5>
+
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>
+                              <strong>Quantity:</strong> {stock.quantity} units
+                            </p>
+                            <p>
+                              <strong>Price:</strong> $
+                              {stock.pricePerUnit || stock.price}/unit
+                            </p>
+
+                            {stock.qualityGrade && (
+                              <p>
+                                <strong>Quality:</strong>
+                                <span
+                                  className={`ml-1 px-2 py-1 rounded text-xs ${
+                                    stock.qualityGrade === "Premium"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : stock.qualityGrade === "A"
+                                      ? "bg-green-100 text-green-800"
+                                      : stock.qualityGrade === "B"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {stock.qualityGrade}
+                                </span>
+                              </p>
+                            )}
+
+                            {stock.location && (
+                              <p>
+                                <strong>Location:</strong> {stock.location.city}
+                                , {stock.location.state}
+                              </p>
+                            )}
+
+                            <div className="flex items-center justify-between mt-2">
+                              <span
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                  stock.availability
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {stock.availability
+                                  ? "Available"
+                                  : "Unavailable"}
+                              </span>
+
+                              {stock.timestamp && (
+                                <span className="text-xs text-gray-400">
+                                  {new Date(
+                                    stock.timestamp
+                                  ).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+
+                            {stock.description && (
+                              <p className="text-xs text-gray-600 mt-2 p-2 bg-white rounded border-l-2 border-blue-200">
+                                {stock.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">
+                    No stocks found for this supplier
                   </p>
                 )}
               </div>
