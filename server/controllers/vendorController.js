@@ -132,3 +132,62 @@ export const getSingleVendorController = async (req, res) => {
     });
   }
 };
+
+//update vendor
+
+export const UpdateVendorController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { preferredMaterials } = req.body;
+
+    const vendor = await vendorModel.findByIdAndUpdate(id);
+    if (!vendor) {
+      return res.status(404).send({
+        success: false,
+        message: "vendor not found",
+      });
+    }
+    if (preferredMaterials) {
+      vendor.preferredMaterials = preferredMaterials;
+    }
+
+    await vendor.save();
+    return res.status(200).send({
+      success: true,
+      message: "vendor updated successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(400).send({
+      success: false,
+      message: "something went wrong in updation",
+    });
+  }
+};
+
+//delete vendor
+
+export const DeleteVendorController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vendor = await vendorModel.findByIdAndDelete(id);
+    if (!vendor) {
+      return res.status(500).send({
+        success: false,
+        message: "vendor not found",
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      message: "vendor created successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(404).send({
+      success: false,
+      message: "something went wrong",
+    });
+  }
+};

@@ -4,6 +4,8 @@ import {
   createVendorController,
   getAllVendorsController,
   getSingleVendorController,
+  UpdateVendorController,
+  DeleteVendorController,
 } from "../controllers/vendorController.js";
 
 const router = express.Router();
@@ -20,5 +22,11 @@ router.get("/getall-vendors", getAllVendorsController);
 
 //get-single vendors
 router.get("/get-vendor/:id", getSingleVendorController);
+
+//update vendor
+router.put("/update-vendor/:id", UpdateVendorController);
+
+//delete vendor
+router.delete("/delete-vendor/:id", DeleteVendorController);
 
 export default router;
