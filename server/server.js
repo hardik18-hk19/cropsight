@@ -8,6 +8,8 @@ import authRouter from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import supplierRouter from "./routes/supplierRoutes.js";
 import vendorRouter from "./routes/vendorRoutes.js";
+import stockRouter from "./routes/stockRoutes.js";
+import imageRouter from "./routes/imageRoutes.js";
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/supplier", supplierRouter);
 app.use("/api/vendor", vendorRouter);
+app.use("/api/stock", stockRouter);
+app.use("/api/image", imageRouter);
 
 app.listen(port, () => {
   console.log(`Server Started on Port ${port}`);
