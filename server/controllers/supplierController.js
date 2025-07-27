@@ -30,6 +30,32 @@ export const getSupplierById = async (req, res) => {
   }
 };
 
+// Get current user's supplier data
+export const getMySupplierData = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    let supplier = await supplierModel
+      .findOne({ userId })
+      .populate("userId", "name email")
+      .populate("rawMaterials.materialId");
+
+    // If supplier doesn't exist, create an empty one
+    if (!supplier) {
+      supplier = new supplierModel({
+        userId,
+        rawMaterials: [],
+      });
+      await supplier.save();
+      await supplier.populate("userId", "name email");
+    }
+
+    return res.json({ success: true, supplier });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
 export const addRawMaterial = async (req, res) => {
   try {
     const {
@@ -40,14 +66,16 @@ export const addRawMaterial = async (req, res) => {
       quantity = 0,
       availability = true,
       description,
-      supplierId,
     } = req.body;
 
+    // Get the logged-in user's ID from the middleware
+    const userId = req.userId;
+
     // Validate required fields
-    if (!name || !unit || !category || !price || !supplierId) {
+    if (!name || !unit || !category || !price) {
       return res.status(400).json({
         success: false,
-        message: "Name, unit, category, price, and supplierId are required",
+        message: "Name, unit, category, and price are required",
       });
     }
 
@@ -67,12 +95,14 @@ export const addRawMaterial = async (req, res) => {
       await rawMaterial.save();
     }
 
-    // Find the supplier
-    const supplier = await supplierModel.findById(supplierId);
+    // Find the supplier by userId (logged-in user)
+    let supplier = await supplierModel.findOne({ userId });
+
+    // If supplier doesn't exist, create one
     if (!supplier) {
-      return res.status(404).json({
-        success: false,
-        message: "Supplier not found",
+      supplier = new supplierModel({
+        userId,
+        rawMaterials: [],
       });
     }
 
@@ -84,7 +114,7 @@ export const addRawMaterial = async (req, res) => {
     if (existingMaterial) {
       return res.status(400).json({
         success: false,
-        message: "This raw material is already added by this supplier",
+        message: "This raw material is already added by you",
       });
     }
 
@@ -104,7 +134,7 @@ export const addRawMaterial = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Raw material added to supplier successfully",
+      message: "Raw material added successfully",
       rawMaterial: rawMaterial,
       supplier: supplier,
     });
@@ -121,21 +151,17 @@ export const addRawMaterial = async (req, res) => {
 export const updateRawMaterial = async (req, res) => {
   try {
     const { materialId } = req.params;
-    const { price, quantity, availability, description, supplierId } = req.body;
+    const { price, quantity, availability, description } = req.body;
 
-    if (!supplierId) {
-      return res.status(400).json({
-        success: false,
-        message: "Supplier ID is required",
-      });
-    }
+    // Get the logged-in user's ID from the middleware
+    const userId = req.userId;
 
-    // Find the supplier
-    const supplier = await supplierModel.findById(supplierId);
+    // Find the supplier by userId (logged-in user)
+    const supplier = await supplierModel.findOne({ userId });
     if (!supplier) {
       return res.status(404).json({
         success: false,
-        message: "Supplier not found",
+        message: "You are not registered as a supplier",
       });
     }
 
@@ -147,7 +173,7 @@ export const updateRawMaterial = async (req, res) => {
     if (materialIndex === -1) {
       return res.status(404).json({
         success: false,
-        message: "Raw material not found for this supplier",
+        message: "Raw material not found in your inventory",
       });
     }
 
@@ -184,21 +210,16 @@ export const updateRawMaterial = async (req, res) => {
 export const deleteRawMaterial = async (req, res) => {
   try {
     const { materialId } = req.params;
-    const { supplierId } = req.body;
 
-    if (!supplierId) {
-      return res.status(400).json({
-        success: false,
-        message: "Supplier ID is required",
-      });
-    }
+    // Get the logged-in user's ID from the middleware
+    const userId = req.userId;
 
-    // Find the supplier
-    const supplier = await supplierModel.findById(supplierId);
+    // Find the supplier by userId (logged-in user)
+    const supplier = await supplierModel.findOne({ userId });
     if (!supplier) {
       return res.status(404).json({
         success: false,
-        message: "Supplier not found",
+        message: "You are not registered as a supplier",
       });
     }
 
@@ -210,7 +231,7 @@ export const deleteRawMaterial = async (req, res) => {
     if (materialIndex === -1) {
       return res.status(404).json({
         success: false,
-        message: "Raw material not found for this supplier",
+        message: "Raw material not found in your inventory",
       });
     }
 
@@ -220,7 +241,7 @@ export const deleteRawMaterial = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Raw material removed from supplier successfully",
+      message: "Raw material removed successfully",
     });
   } catch (error) {
     console.error("Error deleting raw material:", error);

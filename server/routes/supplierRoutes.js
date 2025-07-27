@@ -2,22 +2,31 @@ import express from "express";
 import {
   getAllSuppliers,
   getSupplierById,
+  getMySupplierData,
   addRawMaterial,
   updateRawMaterial,
   deleteRawMaterial,
 } from "../controllers/supplierController.js";
 import upload from "../middleware/upload.js";
+import userAuth from "../middleware/userAuth.js";
 
 const router = express.Router();
 
 router.get("/get-suppliers", getAllSuppliers);
 router.get("/get-supplier/:id", getSupplierById);
-router.post("/add-material", upload.array("images", 5), addRawMaterial);
+router.get("/my-data", userAuth, getMySupplierData);
+router.post(
+  "/add-material",
+  userAuth,
+  upload.array("images", 5),
+  addRawMaterial
+);
 router.put(
   "/update-material/:materialId",
+  userAuth,
   upload.array("images", 5),
   updateRawMaterial
 );
-router.delete("/delete-material/:materialId", deleteRawMaterial);
+router.delete("/delete-material/:materialId", userAuth, deleteRawMaterial);
 
 export default router;

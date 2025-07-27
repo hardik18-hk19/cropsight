@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 
 const RawMaterialManagement = () => {
   const [materials, setMaterials] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
@@ -16,7 +15,6 @@ const RawMaterialManagement = () => {
     quantity: "",
     availability: true,
     description: "",
-    supplierId: "",
   });
   const [selectedImages, setSelectedImages] = useState([]);
 
@@ -35,50 +33,31 @@ const RawMaterialManagement = () => {
 
   useEffect(() => {
     fetchMaterials();
-    fetchSuppliers();
   }, []);
-
-  const fetchSuppliers = async () => {
-    try {
-      const response = await supplierAPI.getAllSuppliers();
-      if (response.success) {
-        setSuppliers(response.suppliers || []);
-      }
-    } catch (error) {
-      console.error("Error fetching suppliers:", error);
-    }
-  };
 
   const fetchMaterials = async () => {
     setIsLoading(true);
     try {
-      const response = await supplierAPI.getAllSuppliers();
-      if (response.success) {
-        // Extract all raw materials from suppliers
-        const allMaterials = [];
-        response.suppliers.forEach((supplier) => {
-          if (supplier.rawMaterials) {
-            supplier.rawMaterials.forEach((material) => {
-              if (material.materialId) {
-                allMaterials.push({
-                  ...material.materialId,
-                  supplierId: supplier._id,
-                  supplierName: supplier.id?.name || "Unknown Supplier",
-                  price: material.price,
-                  availability: material.availability,
-                  quantity: material.quantity,
-                  description: material.description,
-                });
-              }
-            });
-          }
-        });
-        setMaterials(allMaterials);
+      const response = await supplierAPI.getMySupplierData();
+      if (response.success && response.supplier) {
+        // Extract raw materials from the current user's supplier data
+        const myMaterials = response.supplier.rawMaterials.map((material) => ({
+          ...material.materialId,
+          supplierId: response.supplier._id,
+          supplierName: response.supplier.userId?.name || "Your Materials",
+          price: material.price,
+          availability: material.availability,
+          quantity: material.quantity,
+          description: material.description,
+          _id: material.materialId._id, // Use materialId for operations
+        }));
+        setMaterials(myMaterials);
       } else {
-        toast.error("Failed to fetch materials");
+        setMaterials([]);
       }
     } catch (error) {
       toast.error("Error fetching materials: " + error.message);
+      setMaterials([]);
     } finally {
       setIsLoading(false);
     }
@@ -114,13 +93,10 @@ const RawMaterialManagement = () => {
     }
   };
 
-  const handleDelete = async (materialId, supplierId) => {
+  const handleDelete = async (materialId) => {
     if (window.confirm("Are you sure you want to delete this raw material?")) {
       try {
-        const response = await supplierAPI.deleteRawMaterial(
-          materialId,
-          supplierId
-        );
+        const response = await supplierAPI.deleteRawMaterial(materialId);
         if (response.success) {
           toast.success("Raw material deleted successfully");
           fetchMaterials();
@@ -158,7 +134,6 @@ const RawMaterialManagement = () => {
       quantity: "",
       availability: true,
       description: "",
-      supplierId: "",
     });
     setSelectedImages([]);
     setEditingMaterial(null);
@@ -252,7 +227,7 @@ const RawMaterialManagement = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price (₹)
@@ -285,27 +260,6 @@ const RawMaterialManagement = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter quantity"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Supplier
-              </label>
-              <select
-                value={formData.supplierId}
-                onChange={(e) =>
-                  setFormData({ ...formData, supplierId: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Supplier</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier._id} value={supplier._id}>
-                    {supplier.userId?.name || `Supplier ${supplier._id}`}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 
@@ -476,7 +430,7 @@ const RawMaterialManagement = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(material._id, material.supplierId)}
+                        onClick={() => handleDelete(material._id)}
                         className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                       >
                         Delete

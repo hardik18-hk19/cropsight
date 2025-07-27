@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://cropsight-kdpv.onrender.com/";
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -132,13 +133,15 @@ export const supplierAPI = {
     return response.data;
   },
 
-  deleteRawMaterial: async (materialId, supplierId) => {
+  deleteRawMaterial: async (materialId) => {
     const response = await axios.delete(
-      `${backendUrl}/api/supplier/delete-material/${materialId}`,
-      {
-        data: { supplierId },
-      }
+      `${backendUrl}/api/supplier/delete-material/${materialId}`
     );
+    return response.data;
+  },
+
+  getMySupplierData: async () => {
+    const response = await axios.get(`${backendUrl}/api/supplier/my-data`);
     return response.data;
   },
 };
