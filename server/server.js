@@ -18,7 +18,7 @@ connectDatabase();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://cropsight-coral.vercel.app/",
+  "https://cropsight-coral.vercel.app",
 ];
 
 app.use(express.json());
