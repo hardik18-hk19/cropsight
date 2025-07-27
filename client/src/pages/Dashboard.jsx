@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { AppContent } from "../context/AppContext";
 import StockManagement from "../components/StockManagement";
 import RawMaterialManagement from "../components/RawMaterialManagement";
@@ -9,6 +9,17 @@ import VendorManagement from "../components/VendorManagement";
 const Dashboard = () => {
   const { userData, userRole } = useContext(AppContent);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Listen for navigation events from the Navigation component
+  useEffect(() => {
+    const handleTabChange = (event) => {
+      setActiveTab(event.detail);
+    };
+
+    window.addEventListener("dashboardTabChange", handleTabChange);
+    return () =>
+      window.removeEventListener("dashboardTabChange", handleTabChange);
+  }, []);
 
   const tabs = [
     { id: "overview", name: "Overview", icon: "📊" },
@@ -24,9 +35,15 @@ const Dashboard = () => {
       case "overview":
         return (
           <div className="p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Dashboard Overview
-            </h2>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">
+                CropSight Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Welcome back, {userData?.name || "User"}! Manage your
+                agricultural operations.
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
@@ -147,29 +164,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                CropSight Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Welcome back, {userData?.name || "User"}!
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Role: {userRole}</span>
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {userData?.name?.charAt(0).toUpperCase() || "U"}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="bg-gray-100 pt-16">
       {/* Navigation Tabs */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

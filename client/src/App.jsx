@@ -8,25 +8,31 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import { ToastContainer } from "react-toastify";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Navigation from "./components/Navigation";
+import Footer from "./components/Footer";
 
 const App = () => {
   return (
-    <div className="">
+    <div className="min-h-screen flex flex-col">
       <ToastContainer />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/email-verify" element={<EmailVerify />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+      <Navigation />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/email-verify" element={<EmailVerify />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 };

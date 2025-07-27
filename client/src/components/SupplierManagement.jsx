@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supplierAPI } from "../services/api";
 import { toast } from "react-toastify";
+import Breadcrumb from "./Breadcrumb";
 
 const SupplierManagement = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -49,6 +50,8 @@ const SupplierManagement = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
+      <Breadcrumb items={[{ name: "Suppliers", path: null }]} />
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
           Supplier Management
