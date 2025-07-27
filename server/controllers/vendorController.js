@@ -90,11 +90,14 @@ export const createVendorController = async (req, res) => {
 
 export const getAllVendorsController = async (req, res) => {
   try {
-    const vendor = await vendorModel.find().populate("preferredMaterials");
+    const vendors = await vendorModel
+      .find()
+      .populate("userId", "name email")
+      .populate("preferredMaterials");
     return res.status(200).send({
       success: true,
       message: "got all vendors successfully",
-      vendor,
+      vendors,
     });
   } catch (error) {
     console.log("error", error);
@@ -112,6 +115,7 @@ export const getSingleVendorController = async (req, res) => {
     const { id } = req.params;
     const vendor = await vendorModel
       .findById(id)
+      .populate("userId", "name email")
       .populate("preferredMaterials");
     if (!vendor) {
       return res.status(500).send({

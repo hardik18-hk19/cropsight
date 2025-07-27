@@ -18,7 +18,9 @@ connectDatabase();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://cropsight-coral.vercel.app",
+  "https://cropsight-coral.vercel.app/",
 ];
 
 app.use(express.json());
@@ -37,8 +39,16 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cookie",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+    exposedHeaders: ["set-cookie"],
   })
 );
 app.use(morgan("dev"));

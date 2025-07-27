@@ -36,7 +36,7 @@ router.post("/preferred-material/:id", addPreferredMaterialController);
 
 //removepreferredMaterial
 router.delete(
-  "/preferred-material/materialId",
+  "/preferred-material/:id/:materialId",
   deletePreferredMaterialIdController
 );
 

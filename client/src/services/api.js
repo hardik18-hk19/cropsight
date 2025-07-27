@@ -1,7 +1,14 @@
 import axios from "axios";
 
 const backendUrl =
-  import.meta.env.VITE_BACKEND_URL || "https://cropsight-kdpv.onrender.com/";
+  import.meta.env.VITE_BACKEND_URL || "https://cropsight-kdpv.onrender.com";
+
+// Helper function to construct URLs properly
+const constructURL = (path) => {
+  const base = backendUrl.endsWith("/") ? backendUrl.slice(0, -1) : backendUrl;
+  const endpoint = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${endpoint}`;
+};
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -10,7 +17,7 @@ axios.defaults.withCredentials = true;
 export const authAPI = {
   register: async (userData) => {
     const response = await axios.post(
-      `${backendUrl}/api/auth/register`,
+      constructURL("/api/auth/register"),
       userData
     );
     return response.data;
@@ -18,44 +25,49 @@ export const authAPI = {
 
   login: async (credentials) => {
     const response = await axios.post(
-      `${backendUrl}/api/auth/login`,
+      constructURL("/api/auth/login"),
       credentials
     );
     return response.data;
   },
 
   logout: async () => {
-    const response = await axios.post(`${backendUrl}/api/auth/logout`);
+    const response = await axios.post(constructURL("/api/auth/logout"));
     return response.data;
   },
 
   sendVerifyOtp: async () => {
-    const response = await axios.post(`${backendUrl}/api/auth/send-verify-otp`);
+    const response = await axios.post(
+      constructURL("/api/auth/send-verify-otp")
+    );
     return response.data;
   },
 
   verifyAccount: async (otp) => {
-    const response = await axios.post(`${backendUrl}/api/auth/verify-account`, {
-      otp,
-    });
+    const response = await axios.post(
+      constructURL("/api/auth/verify-account"),
+      {
+        otp,
+      }
+    );
     return response.data;
   },
 
   sendResetOtp: async () => {
-    const response = await axios.post(`${backendUrl}/api/auth/send-reset-otp`);
+    const response = await axios.post(constructURL("/api/auth/send-reset-otp"));
     return response.data;
   },
 
   resetPassword: async (otpData) => {
     const response = await axios.post(
-      `${backendUrl}/api/auth/password-reset`,
+      constructURL("/api/auth/password-reset"),
       otpData
     );
     return response.data;
   },
 
   isAuthenticated: async () => {
-    const response = await axios.get(`${backendUrl}/api/auth/is-auth`);
+    const response = await axios.get(constructURL("/api/auth/is-auth"));
     return response.data;
   },
 };
@@ -63,12 +75,12 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getUserData: async () => {
-    const response = await axios.get(`${backendUrl}/api/user/data`);
+    const response = await axios.get(constructURL("/api/user/data"));
     return response.data;
   },
 
   getUserRole: async () => {
-    const response = await axios.get(`${backendUrl}/api/user/role`);
+    const response = await axios.get(constructURL("/api/user/role"));
     return response.data;
   },
 };
@@ -77,14 +89,14 @@ export const userAPI = {
 export const supplierAPI = {
   getAllSuppliers: async () => {
     const response = await axios.get(
-      `${backendUrl}/api/supplier/get-suppliers`
+      constructURL("/api/supplier/get-suppliers")
     );
     return response.data;
   },
 
   getSupplierById: async (id) => {
     const response = await axios.get(
-      `${backendUrl}/api/supplier/get-supplier/${id}`
+      constructURL(`/api/supplier/get-supplier/${id}`)
     );
     return response.data;
   },
@@ -102,7 +114,7 @@ export const supplierAPI = {
     }
 
     const response = await axios.post(
-      `${backendUrl}/api/supplier/add-material`,
+      constructURL("/api/supplier/add-material"),
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -124,7 +136,7 @@ export const supplierAPI = {
     }
 
     const response = await axios.put(
-      `${backendUrl}/api/supplier/update-material/${materialId}`,
+      constructURL(`/api/supplier/update-material/${materialId}`),
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -135,13 +147,13 @@ export const supplierAPI = {
 
   deleteRawMaterial: async (materialId) => {
     const response = await axios.delete(
-      `${backendUrl}/api/supplier/delete-material/${materialId}`
+      constructURL(`/api/supplier/delete-material/${materialId}`)
     );
     return response.data;
   },
 
   getMySupplierData: async () => {
-    const response = await axios.get(`${backendUrl}/api/supplier/my-data`);
+    const response = await axios.get(constructURL("/api/supplier/my-data"));
     return response.data;
   },
 };
@@ -160,9 +172,13 @@ export const stockAPI = {
       });
     }
 
-    const response = await axios.post(`${backendUrl}/api/stock/add`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const response = await axios.post(
+      constructURL("/api/stock/add"),
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
     return response.data;
   },
 
@@ -179,7 +195,7 @@ export const stockAPI = {
     }
 
     const response = await axios.put(
-      `${backendUrl}/api/stock/update/${stockId}`,
+      constructURL(`/api/stock/update/${stockId}`),
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -190,31 +206,31 @@ export const stockAPI = {
 
   deleteStock: async (stockId) => {
     const response = await axios.delete(
-      `${backendUrl}/api/stock/delete/${stockId}`
+      constructURL(`/api/stock/delete/${stockId}`)
     );
     return response.data;
   },
 
   getAllStocks: async () => {
-    const response = await axios.get(`${backendUrl}/api/stock/all`);
+    const response = await axios.get(constructURL("/api/stock/all"));
     return response.data;
   },
 
   getStockById: async (stockId) => {
-    const response = await axios.get(`${backendUrl}/api/stock/${stockId}`);
+    const response = await axios.get(constructURL(`/api/stock/${stockId}`));
     return response.data;
   },
 
   getStocksBySupplier: async (supplierId) => {
     const response = await axios.get(
-      `${backendUrl}/api/stock/supplier/${supplierId}`
+      constructURL(`/api/stock/supplier/${supplierId}`)
     );
     return response.data;
   },
 
   getStocksByMaterial: async (materialId) => {
     const response = await axios.get(
-      `${backendUrl}/api/stock/material/${materialId}`
+      constructURL(`/api/stock/material/${materialId}`)
     );
     return response.data;
   },
@@ -227,7 +243,7 @@ export const imageAPI = {
     formData.append("image", image);
 
     const response = await axios.post(
-      `${backendUrl}/api/image/upload`,
+      constructURL("/api/image/upload"),
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -243,7 +259,7 @@ export const imageAPI = {
     });
 
     const response = await axios.post(
-      `${backendUrl}/api/image/upload-multiple`,
+      constructURL("/api/image/upload-multiple"),
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -254,14 +270,14 @@ export const imageAPI = {
 
   deleteImage: async (publicId) => {
     const response = await axios.delete(
-      `${backendUrl}/api/image/delete/${publicId}`
+      constructURL(`/api/image/delete/${publicId}`)
     );
     return response.data;
   },
 
   getImageDetails: async (publicId) => {
     const response = await axios.get(
-      `${backendUrl}/api/image/details/${publicId}`
+      constructURL(`/api/image/details/${publicId}`)
     );
     return response.data;
   },
@@ -270,20 +286,22 @@ export const imageAPI = {
 // Vendor API
 export const vendorAPI = {
   getAllVendors: async () => {
-    const response = await axios.get(`${backendUrl}/api/vendor/getall-vendors`);
+    const response = await axios.get(
+      constructURL("/api/vendor/getall-vendors")
+    );
     return response.data;
   },
 
   getVendorById: async (id) => {
     const response = await axios.get(
-      `${backendUrl}/api/vendor/get-vendor/${id}`
+      constructURL(`/api/vendor/get-vendor/${id}`)
     );
     return response.data;
   },
 
   createVendor: async (vendorData) => {
     const response = await axios.post(
-      `${backendUrl}/api/vendor/create-vendor`,
+      constructURL("/api/vendor/create-vendor"),
       vendorData
     );
     return response.data;
@@ -291,7 +309,7 @@ export const vendorAPI = {
 
   predictPrice: async (priceData) => {
     const response = await axios.post(
-      `${backendUrl}/api/vendor/predict-price`,
+      constructURL("/api/vendor/predict-price"),
       priceData
     );
     return response.data;
@@ -301,7 +319,7 @@ export const vendorAPI = {
   // You may need to implement these in the backend if required:
   // updateVendor: async (id, vendorData) => {
   //   const response = await axios.put(
-  //     `${backendUrl}/api/vendor/update/${id}`,
+  //     constructURL(`/api/vendor/update/${id}`),
   //     vendorData
   //   );
   //   return response.data;
@@ -309,14 +327,14 @@ export const vendorAPI = {
 
   // deleteVendor: async (id) => {
   //   const response = await axios.delete(
-  //     `${backendUrl}/api/vendor/delete/${id}`
+  //     constructURL(`/api/vendor/delete/${id}`)
   //   );
   //   return response.data;
   // },
 
   // addPreferredMaterial: async (id, materialId) => {
   //   const response = await axios.post(
-  //     `${backendUrl}/api/vendor/${id}/preferred-material`,
+  //     constructURL(`/api/vendor/${id}/preferred-material`),
   //     { materialId }
   //   );
   //   return response.data;
@@ -324,7 +342,7 @@ export const vendorAPI = {
 
   // removePreferredMaterial: async (id, materialId) => {
   //   const response = await axios.delete(
-  //     `${backendUrl}/api/vendor/${id}/preferred-material/${materialId}`
+  //     constructURL(`/api/vendor/${id}/preferred-material/${materialId}`)
   //   );
   //   return response.data;
   // },
