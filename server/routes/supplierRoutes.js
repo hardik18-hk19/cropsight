@@ -3,6 +3,7 @@ import {
   getAllSuppliers,
   getSupplierById,
   getMySupplierData,
+  getAllRawMaterials,
   addRawMaterial,
   updateRawMaterial,
   deleteRawMaterial,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.get("/get-suppliers", getAllSuppliers);
 router.get("/get-supplier/:id", getSupplierById);
 router.get("/my-data", userAuth, getMySupplierData);
+router.get("/raw-materials", getAllRawMaterials);
 router.post(
   "/add-material",
   userAuth,

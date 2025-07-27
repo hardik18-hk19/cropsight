@@ -108,6 +108,40 @@ export const getAllVendorsController = async (req, res) => {
   }
 };
 
+// Get current user's vendor data
+export const getMyVendorData = async (req, res) => {
+  try {
+    const userId = req.userId; // Get user ID from auth middleware
+
+    let vendor = await vendorModel
+      .findOne({ userId })
+      .populate("userId", "name email")
+      .populate("preferredMaterials");
+
+    // If vendor doesn't exist, create an empty one
+    if (!vendor) {
+      vendor = new vendorModel({
+        userId,
+        preferredMaterials: [],
+      });
+      await vendor.save();
+      await vendor.populate("userId", "name email");
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Vendor data fetched successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
 //getsingleVendors
 
 export const getSingleVendorController = async (req, res) => {
@@ -201,18 +235,29 @@ export const addPreferredMaterialController = async (req, res) => {
   try {
     const { id } = req.params;
     const { materialId } = req.body;
+    const userId = req.userId; // Get user ID from auth middleware
 
     if (!materialId) {
-      return res.status(500).send({
+      return res.status(400).send({
         success: false,
         message: "materialId is required",
       });
     }
+
     const vendor = await vendorModel.findById(id);
     if (!vendor) {
       return res.status(404).send({
         success: false,
         message: "Vendor not found",
+      });
+    }
+
+    // Check ownership - only the vendor owner can modify their preferences
+    if (vendor.userId.toString() !== userId) {
+      return res.status(403).send({
+        success: false,
+        message:
+          "Access denied. You can only manage your own preferred materials.",
       });
     }
 
@@ -228,9 +273,9 @@ export const addPreferredMaterialController = async (req, res) => {
     });
   } catch (error) {
     console.log("error", error);
-    return res.status(404).send({
+    return res.status(500).send({
       success: false,
-      message: "something went wrong",
+      message: "Something went wrong",
     });
   }
 };
@@ -239,12 +284,22 @@ export const addPreferredMaterialController = async (req, res) => {
 export const deletePreferredMaterialIdController = async (req, res) => {
   try {
     const { id, materialId } = req.params;
+    const userId = req.userId; // Get user ID from auth middleware
 
     const vendor = await vendorModel.findById(id);
     if (!vendor) {
       return res.status(404).send({
         success: false,
         message: "Vendor not found",
+      });
+    }
+
+    // Check ownership - only the vendor owner can modify their preferences
+    if (vendor.userId.toString() !== userId) {
+      return res.status(403).send({
+        success: false,
+        message:
+          "Access denied. You can only manage your own preferred materials.",
       });
     }
 

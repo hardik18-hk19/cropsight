@@ -163,6 +163,13 @@ export const supplierAPI = {
     const response = await axios.get(constructURL("/api/supplier/my-data"));
     return response.data;
   },
+
+  getAllRawMaterials: async () => {
+    const response = await axios.get(
+      constructURL("/api/supplier/raw-materials")
+    );
+    return response.data;
+  },
 };
 
 // Stock API
@@ -297,6 +304,11 @@ export const imageAPI = {
 
 // Vendor API
 export const vendorAPI = {
+  getVendorData: async () => {
+    const response = await axios.get(constructURL("/api/vendor/my-data"));
+    return response.data;
+  },
+
   getAllVendors: async () => {
     const response = await axios.get(
       constructURL("/api/vendor/getall-vendors")
@@ -327,6 +339,21 @@ export const vendorAPI = {
     return response.data;
   },
 
+  addPreferredMaterial: async (id, materialId) => {
+    const response = await axios.post(
+      constructURL(`/api/vendor/preferred-material/${id}`),
+      { materialId }
+    );
+    return response.data;
+  },
+
+  removePreferredMaterial: async (id, materialId) => {
+    const response = await axios.delete(
+      constructURL(`/api/vendor/preferred-material/${id}/${materialId}`)
+    );
+    return response.data;
+  },
+
   // Note: The following endpoints are defined in frontend but not implemented in backend
   // You may need to implement these in the backend if required:
   // updateVendor: async (id, vendorData) => {
@@ -340,21 +367,6 @@ export const vendorAPI = {
   // deleteVendor: async (id) => {
   //   const response = await axios.delete(
   //     constructURL(`/api/vendor/delete/${id}`)
-  //   );
-  //   return response.data;
-  // },
-
-  // addPreferredMaterial: async (id, materialId) => {
-  //   const response = await axios.post(
-  //     constructURL(`/api/vendor/${id}/preferred-material`),
-  //     { materialId }
-  //   );
-  //   return response.data;
-  // },
-
-  // removePreferredMaterial: async (id, materialId) => {
-  //   const response = await axios.delete(
-  //     constructURL(`/api/vendor/${id}/preferred-material/${materialId}`)
   //   );
   //   return response.data;
   // },

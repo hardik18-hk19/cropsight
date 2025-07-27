@@ -56,6 +56,16 @@ export const getMySupplierData = async (req, res) => {
   }
 };
 
+// Get all raw materials
+export const getAllRawMaterials = async (req, res) => {
+  try {
+    const rawMaterials = await rawMaterialModel.find().sort({ name: 1 });
+    return res.json({ success: true, rawMaterials });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
 export const addRawMaterial = async (req, res) => {
   try {
     const {

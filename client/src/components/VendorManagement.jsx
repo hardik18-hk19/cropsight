@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { vendorAPI } from "../services/api";
 import { toast } from "react-toastify";
+import PreferredMaterialSelector from "./PreferredMaterialSelector";
 
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
@@ -371,9 +372,27 @@ const VendorManagement = () => {
               </div>
 
               {/* Preferred Materials */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold mb-3">
+                  Preferred Materials Management
+                </h4>
+                <PreferredMaterialSelector
+                  vendorId={selectedVendor._id}
+                  currentPreferences={selectedVendor.preferredMaterials || []}
+                  onUpdate={(updatedPreferences) => {
+                    setSelectedVendor({
+                      ...selectedVendor,
+                      preferredMaterials: updatedPreferences,
+                    });
+                  }}
+                />
+              </div>
+
+              {/* Current Preferred Materials Display */}
               <div>
                 <h4 className="text-lg font-semibold mb-3">
-                  Preferred Materials
+                  Current Preferred Materials (
+                  {selectedVendor.preferredMaterials?.length || 0})
                 </h4>
                 {selectedVendor.preferredMaterials &&
                 selectedVendor.preferredMaterials.length > 0 ? (
@@ -381,7 +400,7 @@ const VendorManagement = () => {
                     {selectedVendor.preferredMaterials.map(
                       (material, index) => (
                         <div
-                          key={index}
+                          key={material._id || index}
                           className="p-4 bg-gray-50 rounded-lg border"
                         >
                           <h5 className="font-medium text-gray-800">
@@ -403,7 +422,8 @@ const VendorManagement = () => {
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-4">
-                    No preferred materials set
+                    No preferred materials set. Use the manager above to add
+                    some.
                   </p>
                 )}
               </div>
