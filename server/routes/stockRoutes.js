@@ -40,7 +40,7 @@ router.get("/material/:materialId", getStocksByMaterial);
 // Get all stocks (public access for browsing)
 router.get("/all", getAllStocks);
 
-// Get stock by ID (public access)
+// Get stock by ID (public access) - MUST be last among GET routes
 router.get("/:stockId", getStockById);
 
 export default router;

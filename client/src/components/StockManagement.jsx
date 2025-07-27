@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 const StockManagement = () => {
   const [stocks, setStocks] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [rawMaterials, setRawMaterials] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
@@ -12,14 +13,23 @@ const StockManagement = () => {
     supplierId: "",
     materialId: "",
     quantity: "",
-    pricePerUnit: "",
+    price: "",
     description: "",
+    location: {
+      city: "",
+      state: "",
+      pincode: "",
+    },
+    harvestDate: "",
+    expiryDate: "",
+    qualityGrade: "A",
   });
   const [selectedImages, setSelectedImages] = useState([]);
 
   useEffect(() => {
     fetchStocks();
     fetchSuppliers();
+    fetchRawMaterials();
   }, []);
 
   const fetchStocks = async () => {
@@ -48,6 +58,19 @@ const StockManagement = () => {
       }
     } catch (error) {
       toast.error("Error fetching your supplier data: " + error.message);
+    }
+  };
+
+  const fetchRawMaterials = async () => {
+    try {
+      const response = await supplierAPI.getAllRawMaterials();
+      if (response.success) {
+        setRawMaterials(response.rawMaterials || []);
+      } else {
+        toast.error("Failed to fetch raw materials");
+      }
+    } catch (error) {
+      toast.error("Error fetching raw materials: " + error.message);
     }
   };
 
@@ -120,8 +143,16 @@ const StockManagement = () => {
       supplierId: stock.supplierId._id || stock.supplierId,
       materialId: stock.materialId._id || stock.materialId,
       quantity: stock.quantity,
-      pricePerUnit: stock.pricePerUnit,
-      description: stock.description,
+      price: stock.price,
+      description: stock.description || "",
+      location: {
+        city: stock.location?.city || "",
+        state: stock.location?.state || "",
+        pincode: stock.location?.pincode || "",
+      },
+      harvestDate: stock.harvestDate ? stock.harvestDate.split("T")[0] : "",
+      expiryDate: stock.expiryDate ? stock.expiryDate.split("T")[0] : "",
+      qualityGrade: stock.qualityGrade || "A",
     });
     setShowForm(true);
   };
@@ -131,8 +162,16 @@ const StockManagement = () => {
       supplierId: "",
       materialId: "",
       quantity: "",
-      pricePerUnit: "",
+      price: "",
       description: "",
+      location: {
+        city: "",
+        state: "",
+        pincode: "",
+      },
+      harvestDate: "",
+      expiryDate: "",
+      qualityGrade: "A",
     });
     setSelectedImages([]);
     setEditingStock(null);
@@ -231,17 +270,28 @@ const StockManagement = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Material ID
+                Raw Material
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.materialId}
                 onChange={(e) =>
                   setFormData({ ...formData, materialId: e.target.value })
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
-              />
+              >
+                <option value="">Select Raw Material</option>
+                {rawMaterials.map((material) => (
+                  <option key={material._id} value={material._id}>
+                    {material.name} ({material.unit}) - {material.category}
+                  </option>
+                ))}
+              </select>
+              {rawMaterials.length === 0 && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Loading available materials...
+                </p>
+              )}
             </div>
 
             <div>
@@ -262,19 +312,123 @@ const StockManagement = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price Per Unit
+                Price
               </label>
               <input
                 type="number"
                 step="0.01"
-                value={formData.pricePerUnit}
+                value={formData.price}
                 onChange={(e) =>
-                  setFormData({ ...formData, pricePerUnit: e.target.value })
+                  setFormData({ ...formData, price: e.target.value })
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
                 min="0"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                City *
+              </label>
+              <input
+                type="text"
+                value={formData.location.city}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    location: { ...formData.location, city: e.target.value },
+                  })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                State *
+              </label>
+              <input
+                type="text"
+                value={formData.location.state}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    location: { ...formData.location, state: e.target.value },
+                  })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pincode *
+              </label>
+              <input
+                type="text"
+                value={formData.location.pincode}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    location: { ...formData.location, pincode: e.target.value },
+                  })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Harvest Date
+              </label>
+              <input
+                type="date"
+                value={formData.harvestDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, harvestDate: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Expiry Date
+              </label>
+              <input
+                type="date"
+                value={formData.expiryDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, expiryDate: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quality Grade
+              </label>
+              <select
+                value={formData.qualityGrade}
+                onChange={(e) =>
+                  setFormData({ ...formData, qualityGrade: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="A">Grade A</option>
+                <option value="B">Grade B</option>
+                <option value="C">Grade C</option>
+                <option value="Premium">Premium</option>
+              </select>
             </div>
           </div>
 
@@ -347,7 +501,7 @@ const StockManagement = () => {
                 Quantity
               </th>
               <th className="border border-gray-300 px-4 py-2 text-left">
-                Price/Unit
+                Price
               </th>
               <th className="border border-gray-300 px-4 py-2 text-left">
                 Description
@@ -380,16 +534,20 @@ const StockManagement = () => {
               stocks.map((stock) => (
                 <tr key={stock._id} className="hover:bg-gray-50">
                   <td className="border border-gray-300 px-4 py-2">
-                    {stock.supplierId?.id?.name || "Unknown Supplier"}
+                    {stock.supplierId?.userId?.name ||
+                      stock.supplierId?.name ||
+                      "Unknown Supplier"}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {stock.materialId?.name || stock.materialId}
+                    {stock.materialId?.name
+                      ? `${stock.materialId.name} (${stock.materialId.unit})`
+                      : stock.materialId}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {stock.quantity}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    ${stock.pricePerUnit}
+                    ${stock.price}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {stock.description || "No description"}

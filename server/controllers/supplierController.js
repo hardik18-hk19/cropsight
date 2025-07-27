@@ -68,24 +68,13 @@ export const getAllRawMaterials = async (req, res) => {
 
 export const addRawMaterial = async (req, res) => {
   try {
-    const {
-      name,
-      unit,
-      category,
-      price,
-      quantity = 0,
-      availability = true,
-      description,
-    } = req.body;
-
-    // Get the logged-in user's ID from the middleware
-    const userId = req.userId;
+    const { name, unit, category } = req.body;
 
     // Validate required fields
-    if (!name || !unit || !category || !price) {
+    if (!name || !unit || !category) {
       return res.status(400).json({
         success: false,
-        message: "Name, unit, category, and price are required",
+        message: "Name, unit, and category are required",
       });
     }
 
@@ -131,10 +120,6 @@ export const addRawMaterial = async (req, res) => {
     // Add material to supplier's raw materials array
     supplier.rawMaterials.push({
       materialId: rawMaterial._id,
-      price: parseFloat(price),
-      quantity: parseInt(quantity),
-      availability: availability,
-      description: description || "",
     });
 
     await supplier.save();
@@ -160,52 +145,10 @@ export const addRawMaterial = async (req, res) => {
 
 export const updateRawMaterial = async (req, res) => {
   try {
-    const { materialId } = req.params;
-    const { price, quantity, availability, description } = req.body;
-
-    // Get the logged-in user's ID from the middleware
-    const userId = req.userId;
-
-    // Find the supplier by userId (logged-in user)
-    const supplier = await supplierModel.findOne({ userId });
-    if (!supplier) {
-      return res.status(404).json({
-        success: false,
-        message: "You are not registered as a supplier",
-      });
-    }
-
-    // Find the material in supplier's raw materials array
-    const materialIndex = supplier.rawMaterials.findIndex(
-      (rm) => rm.materialId.toString() === materialId
-    );
-
-    if (materialIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Raw material not found in your inventory",
-      });
-    }
-
-    // Update the material
-    if (price !== undefined)
-      supplier.rawMaterials[materialIndex].price = parseFloat(price);
-    if (quantity !== undefined)
-      supplier.rawMaterials[materialIndex].quantity = parseInt(quantity);
-    if (availability !== undefined)
-      supplier.rawMaterials[materialIndex].availability = availability;
-    if (description !== undefined)
-      supplier.rawMaterials[materialIndex].description = description;
-
-    await supplier.save();
-
-    // Populate the response
-    await supplier.populate("rawMaterials.materialId");
-
-    res.status(200).json({
-      success: true,
-      message: "Raw material updated successfully",
-      supplier: supplier,
+    return res.status(400).json({
+      success: false,
+      message:
+        "Raw materials cannot be updated. Price and quantity are managed in stock entries.",
     });
   } catch (error) {
     console.error("Error updating raw material:", error);

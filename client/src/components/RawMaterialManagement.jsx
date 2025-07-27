@@ -11,12 +11,7 @@ const RawMaterialManagement = () => {
     name: "",
     unit: "",
     category: "",
-    price: "",
-    quantity: "",
-    availability: true,
-    description: "",
   });
-  const [selectedImages, setSelectedImages] = useState([]);
 
   const unitOptions = [
     "kg",
@@ -45,10 +40,6 @@ const RawMaterialManagement = () => {
           ...material.materialId,
           supplierId: response.supplier._id,
           supplierName: response.supplier.userId?.name || "Your Materials",
-          price: material.price,
-          availability: material.availability,
-          quantity: material.quantity,
-          description: material.description,
           _id: material.materialId._id, // Use materialId for operations
         }));
         setMaterials(myMaterials);
@@ -72,11 +63,10 @@ const RawMaterialManagement = () => {
       if (editingMaterial) {
         response = await supplierAPI.updateRawMaterial(
           editingMaterial._id,
-          formData,
-          selectedImages
+          formData
         );
       } else {
-        response = await supplierAPI.addRawMaterial(formData, selectedImages);
+        response = await supplierAPI.addRawMaterial(formData);
       }
 
       if (response.success) {
@@ -115,12 +105,6 @@ const RawMaterialManagement = () => {
       name: material.name,
       unit: material.unit,
       category: material.category,
-      price: material.price || "",
-      quantity: material.quantity || "",
-      availability:
-        material.availability !== undefined ? material.availability : true,
-      description: material.description || "",
-      supplierId: material.supplierId || "",
     });
     setShowForm(true);
   };
@@ -130,23 +114,9 @@ const RawMaterialManagement = () => {
       name: "",
       unit: "",
       category: "",
-      price: "",
-      quantity: "",
-      availability: true,
-      description: "",
     });
-    setSelectedImages([]);
     setEditingMaterial(null);
     setShowForm(false);
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      toast.error("Maximum 5 images allowed");
-      return;
-    }
-    setSelectedImages(files);
   };
 
   return (
@@ -227,96 +197,6 @@ const RawMaterialManagement = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (₹)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-                placeholder="Enter price"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, quantity: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter quantity"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Availability
-              </label>
-              <select
-                value={formData.availability}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    availability: e.target.value === "true",
-                  })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value={true}>Available</option>
-                <option value={false}>Not Available</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter description (optional)"
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Images (Max 5)
-            </label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            {selectedImages.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
-                {selectedImages.length} image(s) selected
-              </p>
-            )}
-          </div>
-
           <div className="flex gap-4">
             <button
               type="submit"
@@ -357,15 +237,6 @@ const RawMaterialManagement = () => {
                 Supplier
               </th>
               <th className="border border-gray-300 px-4 py-2 text-left">
-                Price (₹)
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Quantity
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
-                Availability
-              </th>
-              <th className="border border-gray-300 px-4 py-2 text-left">
                 Actions
               </th>
             </tr>
@@ -374,7 +245,7 @@ const RawMaterialManagement = () => {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="5"
                   className="border border-gray-300 px-4 py-8 text-center"
                 >
                   Loading...
@@ -383,7 +254,7 @@ const RawMaterialManagement = () => {
             ) : materials.length === 0 ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="5"
                   className="border border-gray-300 px-4 py-8 text-center"
                 >
                   No raw materials found
@@ -403,23 +274,6 @@ const RawMaterialManagement = () => {
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {material.supplierName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    ₹{material.price || "0.00"}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {material.quantity || 0}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        material.availability
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {material.availability ? "Available" : "Unavailable"}
-                    </span>
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     <div className="flex gap-2">
