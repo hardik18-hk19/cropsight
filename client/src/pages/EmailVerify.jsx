@@ -1,17 +1,14 @@
 import { useContext, useEffect, useRef } from "react";
 import { assets } from "../assets/assets";
 import { AppContent } from "../context/AppContext";
-import axios from "axios";
+import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const EmailVerify = () => {
-  axios.defaults.withCredentials = true;
-
   const navigate = useNavigate();
 
-  const { backendUrl, isLoggedIn, userData, getUserData } =
-    useContext(AppContent);
+  const { isLoggedIn, userData, getUserData } = useContext(AppContent);
   const inputRefs = useRef([]);
 
   const handleInput = (e, index) => {
@@ -41,10 +38,7 @@ const EmailVerify = () => {
       const otpArray = inputRefs.current.map((e) => e.value);
       const otp = otpArray.join("");
 
-      const { data } = await axios.post(
-        backendUrl + "/api/auth/verify-account",
-        { otp }
-      );
+      const data = await authAPI.verifyAccount(otp);
 
       if (data.success) {
         toast.success(data.message);

@@ -2,13 +2,13 @@ import React, { useContext, useState } from "react";
 import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import { AppContent } from "../context/AppContext";
-import axios from "axios";
+import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const { backendUrl, setIsLoggedIn, getUserData } = useContext(AppContent);
+  const { setIsLoggedIn, getUserData } = useContext(AppContent);
 
   const [state, setState] = useState("Sign Up");
   const [name, setName] = useState("");
@@ -21,43 +21,35 @@ const Login = () => {
       e.preventDefault();
 
       if (state === "Sign Up") {
-        const data = await axios.post(
-          backendUrl + "/api/auth/register",
-          {
-            name,
-            email,
-            password,
-            userRole,
-          },
-          { withCredentials: true }
-        );
+        const data = await authAPI.register({
+          name,
+          email,
+          password,
+          userRole,
+        });
 
-        if (data.data.success) {
+        if (data.success) {
           setIsLoggedIn(true);
           getUserData();
           navigate("/");
         } else {
-          toast.error(data.data.message);
+          toast.error(data.message);
         }
       } else {
-        const data = await axios.post(
-          backendUrl + "/api/auth/login",
-          {
-            email,
-            password,
-            userRole,
-          },
-          { withCredentials: true }
-        );
+        const data = await authAPI.login({
+          email,
+          password,
+          userRole,
+        });
 
-        if (data.data.success) {
+        if (data.success) {
           console.log("✅ Login successful");
           setIsLoggedIn(true);
           getUserData();
           navigate("/");
         } else {
-          console.log("❌ Login failed:", data.data.message);
-          toast.error(data.data.message);
+          console.log("❌ Login failed:", data.message);
+          toast.error(data.message);
         }
       }
     } catch (error) {

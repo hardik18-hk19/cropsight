@@ -10,6 +10,9 @@ import {
 } from "../config/emailTemplates.js";
 
 export const register = async (req, res) => {
+  console.log("🔥 Register endpoint hit:", req.method, req.url);
+  console.log("🔥 Request body:", req.body);
+
   const { name, email, password, userRole } = req.body;
 
   if (!name || !email || !password || !userRole) {

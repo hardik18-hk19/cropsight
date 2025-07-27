@@ -2,13 +2,13 @@ import React, { useContext, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AppContent } from "../context/AppContext";
 import { assets } from "../assets/assets";
-import axios from "axios";
+import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userData, backendUrl, setUserData, setIsLoggedIn, userRole } =
+  const { userData, setUserData, setIsLoggedIn, userRole } =
     useContext(AppContent);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,10 +16,7 @@ const Navigation = () => {
 
   const sendVerificationOtp = async () => {
     try {
-      axios.defaults.withCredentials = true;
-      const { data } = await axios.post(
-        backendUrl + "/api/auth/send-verify-otp"
-      );
+      const data = await authAPI.sendVerifyOtp();
 
       if (data.success) {
         navigate("/email-verify");
@@ -34,8 +31,7 @@ const Navigation = () => {
 
   const logout = async () => {
     try {
-      axios.defaults.withCredentials = true;
-      const { data } = await axios.post(backendUrl + "/api/auth/logout");
+      const data = await authAPI.logout();
       if (data.success) {
         setIsLoggedIn(false);
         setUserData(false);

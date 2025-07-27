@@ -13,6 +13,13 @@ const constructURL = (path) => {
 // Configure axios defaults
 axios.defaults.withCredentials = true;
 
+// Debug function to test URL construction
+export const testURL = () => {
+  const testUrl = constructURL("/api/auth/register");
+  console.log("🔧 Constructed URL:", testUrl);
+  return testUrl;
+};
+
 // Authentication API
 export const authAPI = {
   register: async (userData) => {

@@ -53,9 +53,24 @@ app.use(
 );
 app.use(morgan("dev"));
 
+// Middleware to handle double slashes in URLs
+app.use((req, res, next) => {
+  if (req.url.includes("//")) {
+    const cleanUrl = req.url.replace(/\/+/g, "/");
+    console.log(`🔧 Fixed double slash: ${req.url} → ${cleanUrl}`);
+    req.url = cleanUrl;
+  }
+  next();
+});
+
 //Api Endpoints
 app.get("/", (req, res) => {
   res.send("Api Working fine");
+});
+
+// Debug endpoint to test URL construction
+app.get("/test", (req, res) => {
+  res.json({ message: "Test endpoint working", url: req.url });
 });
 
 app.use("/api/auth", authRouter);

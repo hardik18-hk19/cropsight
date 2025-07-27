@@ -1,37 +1,31 @@
-import axios from "axios";
 import { createContext, useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
+import { userAPI, authAPI } from "../services/api";
 
 export const AppContent = createContext();
 
 export const AppContextProvider = (props) => {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(false);
   const [userRole, setUserRole] = useState("");
 
   const getUserData = useCallback(async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/data", {
-        withCredentials: true,
-      });
+      const data = await userAPI.getUserData();
       data.success ? setUserData(data.userData) : toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
     }
-  }, [backendUrl]);
+  }, []);
 
   const getUserRole = useCallback(async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/role", {
-        withCredentials: true,
-      });
+      const data = await userAPI.getUserRole();
       data.success ? setUserRole(data.userRole) : toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
     }
-  }, [backendUrl]);
+  }, []);
 
   useEffect(() => {
     getUserRole();
@@ -39,9 +33,7 @@ export const AppContextProvider = (props) => {
 
   const getAuthState = useCallback(async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/auth/is-auth", {
-        withCredentials: true,
-      });
+      const data = await authAPI.isAuthenticated();
       if (data && data.success) {
         setIsLoggedIn(true);
         getUserData();
@@ -56,14 +48,13 @@ export const AppContextProvider = (props) => {
         toast.error(error.response?.data?.message || error.message);
       }
     }
-  }, [backendUrl, getUserData, getUserRole]);
+  }, [getUserData, getUserRole]);
 
   useEffect(() => {
     getAuthState();
   }, [getAuthState]);
 
   const value = {
-    backendUrl,
     isLoggedIn,
     setIsLoggedIn,
     userData,

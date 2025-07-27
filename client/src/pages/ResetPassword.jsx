@@ -1,12 +1,9 @@
-import { useContext, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { assets } from "../assets/assets";
-import { AppContent } from "../context/AppContext";
-import axios from "axios";
+import { authAPI } from "../services/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 const ResetPassword = () => {
-  axios.defaults.withCredentials = true;
-
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -14,7 +11,6 @@ const ResetPassword = () => {
   const [otp, setOtp] = useState(0);
   const [isOtpSubmitted, setIsOtpSubmitted] = useState(false);
 
-  const { backendUrl } = useContext(AppContent);
   const inputRefs = useRef([]);
 
   const handleInput = (e, index) => {
@@ -42,10 +38,7 @@ const ResetPassword = () => {
   const sendVerificationOtp = async (e) => {
     try {
       e.preventDefault();
-      const { data } = await axios.post(
-        backendUrl + "/api/auth/send-reset-otp",
-        { email }
-      );
+      const data = await authAPI.sendResetOtp();
 
       if (data.success) {
         toast.success(data.message);
@@ -72,10 +65,7 @@ const ResetPassword = () => {
   const onSubmitNewPassword = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        backendUrl + "/api/auth/password-reset",
-        { email, otp, newPassword }
-      );
+      const data = await authAPI.resetPassword({ email, otp, newPassword });
 
       if (data.success) {
         toast.success(data.message);
