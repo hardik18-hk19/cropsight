@@ -22,10 +22,7 @@ const VendorManagement = () => {
     setIsLoading(true);
     try {
       const response = await vendorAPI.getAllVendors();
-      console.log("🔍 Full API Response:", response);
       if (response.success) {
-        console.log("📦 Vendors array:", response.vendors);
-        console.log("📏 Vendors length:", response.vendors?.length);
         setVendors(response.vendors || []);
       } else {
         toast.error("Failed to fetch vendors");

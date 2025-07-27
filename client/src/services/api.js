@@ -132,9 +132,12 @@ export const supplierAPI = {
     return response.data;
   },
 
-  deleteRawMaterial: async (materialId) => {
+  deleteRawMaterial: async (materialId, supplierId) => {
     const response = await axios.delete(
-      `${backendUrl}/api/supplier/delete-material/${materialId}`
+      `${backendUrl}/api/supplier/delete-material/${materialId}`,
+      {
+        data: { supplierId },
+      }
     );
     return response.data;
   },

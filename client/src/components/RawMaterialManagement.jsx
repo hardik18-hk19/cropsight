@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 
 const RawMaterialManagement = () => {
   const [materials, setMaterials] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
@@ -11,6 +12,11 @@ const RawMaterialManagement = () => {
     name: "",
     unit: "",
     category: "",
+    price: "",
+    quantity: "",
+    availability: true,
+    description: "",
+    supplierId: "",
   });
   const [selectedImages, setSelectedImages] = useState([]);
 
@@ -29,7 +35,19 @@ const RawMaterialManagement = () => {
 
   useEffect(() => {
     fetchMaterials();
+    fetchSuppliers();
   }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      const response = await supplierAPI.getAllSuppliers();
+      if (response.success) {
+        setSuppliers(response.suppliers || []);
+      }
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+    }
+  };
 
   const fetchMaterials = async () => {
     setIsLoading(true);
@@ -96,10 +114,13 @@ const RawMaterialManagement = () => {
     }
   };
 
-  const handleDelete = async (materialId) => {
+  const handleDelete = async (materialId, supplierId) => {
     if (window.confirm("Are you sure you want to delete this raw material?")) {
       try {
-        const response = await supplierAPI.deleteRawMaterial(materialId);
+        const response = await supplierAPI.deleteRawMaterial(
+          materialId,
+          supplierId
+        );
         if (response.success) {
           toast.success("Raw material deleted successfully");
           fetchMaterials();
@@ -118,6 +139,12 @@ const RawMaterialManagement = () => {
       name: material.name,
       unit: material.unit,
       category: material.category,
+      price: material.price || "",
+      quantity: material.quantity || "",
+      availability:
+        material.availability !== undefined ? material.availability : true,
+      description: material.description || "",
+      supplierId: material.supplierId || "",
     });
     setShowForm(true);
   };
@@ -127,6 +154,11 @@ const RawMaterialManagement = () => {
       name: "",
       unit: "",
       category: "",
+      price: "",
+      quantity: "",
+      availability: true,
+      description: "",
+      supplierId: "",
     });
     setSelectedImages([]);
     setEditingMaterial(null);
@@ -220,6 +252,99 @@ const RawMaterialManagement = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Price (₹)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                placeholder="Enter price"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.quantity}
+                onChange={(e) =>
+                  setFormData({ ...formData, quantity: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter quantity"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Supplier
+              </label>
+              <select
+                value={formData.supplierId}
+                onChange={(e) =>
+                  setFormData({ ...formData, supplierId: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select Supplier</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier._id} value={supplier._id}>
+                    {supplier.userId?.name || `Supplier ${supplier._id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Availability
+              </label>
+              <select
+                value={formData.availability}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    availability: e.target.value === "true",
+                  })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value={true}>Available</option>
+                <option value={false}>Not Available</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter description (optional)"
+              />
+            </div>
+          </div>
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Images (Max 5)
@@ -278,7 +403,10 @@ const RawMaterialManagement = () => {
                 Supplier
               </th>
               <th className="border border-gray-300 px-4 py-2 text-left">
-                Price
+                Price (₹)
+              </th>
+              <th className="border border-gray-300 px-4 py-2 text-left">
+                Quantity
               </th>
               <th className="border border-gray-300 px-4 py-2 text-left">
                 Availability
@@ -292,7 +420,7 @@ const RawMaterialManagement = () => {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="8"
                   className="border border-gray-300 px-4 py-8 text-center"
                 >
                   Loading...
@@ -301,7 +429,7 @@ const RawMaterialManagement = () => {
             ) : materials.length === 0 ? (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="8"
                   className="border border-gray-300 px-4 py-8 text-center"
                 >
                   No raw materials found
@@ -323,7 +451,10 @@ const RawMaterialManagement = () => {
                     {material.supplierName}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {material.price ? `$${material.price}` : "N/A"}
+                    ₹{material.price || "0.00"}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {material.quantity || 0}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     <span
@@ -345,7 +476,7 @@ const RawMaterialManagement = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(material._id)}
+                        onClick={() => handleDelete(material._id, material.supplierId)}
                         className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                       >
                         Delete
